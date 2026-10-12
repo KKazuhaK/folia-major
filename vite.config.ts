@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { type ConfigEnv, type UserConfig, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import { commandPinyinPlugin } from './dev/pinyin/commandPinyinPlugin.mjs';
+import { jiebaWasmPlugin } from './dev/icuFolia/jiebaWasmPlugin.mjs';
 import { normalizeBuildCommit, resolveBuildKind, resolveBuildRepo } from './dev/build/buildIdentity.mjs';
 import { VitePWA } from 'vite-plugin-pwa';
 import { execSync } from 'child_process';
@@ -198,6 +199,8 @@ export default async function viteConfig(_config: ConfigEnv): Promise<UserConfig
       // follow worker entries. Left out, the first local import discovers it at runtime, Vite
       // re-optimizes, and every open page is force-reloaded ("optimized dependencies changed").
       include: ['music-metadata'],
+      // wasm-bindgen output: pre-bundling it rewrites the module icu-folia initialises jieba through.
+      exclude: ['jieba-wasm'],
     },
     build: {
       rollupOptions: {
@@ -240,6 +243,7 @@ export default async function viteConfig(_config: ConfigEnv): Promise<UserConfig
     plugins: [
       devLyricProxyPlugin(),
       commandPinyinPlugin(),
+      jiebaWasmPlugin(),
       react(),
       VitePWA({
         registerType: 'autoUpdate',
