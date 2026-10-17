@@ -1,7 +1,7 @@
 import { PINYIN_BY_PHRASE } from 'virtual:folia-command-pinyin';
 import en from '../../../i18n/locales/en';
 import zhCN from '../../../i18n/locales/zh-CN';
-import zhTW from '../../../i18n/locales/zh-TW';
+import zhTW from 'virtual:folia-locale-zh-TW';
 import ind from '../../../i18n/locales/in';
 import type { CommandPaletteCommand } from '../types';
 import { normalizeSearchText, splitWords } from './normalize';

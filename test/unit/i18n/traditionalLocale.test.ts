@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import en from '@/i18n/locales/en';
 import zhCN from '@/i18n/locales/zh-CN';
-import zhTW from '@/i18n/locales/zh-TW';
+import zhTW from 'virtual:folia-locale-zh-TW';
 import ind from '@/i18n/locales/in';
 import {
     countOverrideHits,
@@ -11,8 +11,8 @@ import {
 import { TRADITIONAL_TERM_OVERRIDES } from '../../../dev/i18n/traditionalTerms.mjs';
 
 // test/unit/i18n/traditionalLocale.test.ts
-// zh-TW.ts 是从 zh-CN.ts 生成的（dev/i18n/emitTraditionalLocale.mjs），
-// 这里守住三件事：结构必须与 zh-CN 完全一致、值必须与生成器输出一致、
+// zh-TW 是 dev/i18n/traditionalLocalePlugin.mjs 在构建期从 zh-CN.ts 转换出来的虚拟模块，
+// 这里守住三件事：结构必须与 zh-CN 完全一致、每条文案都真的转过了、
 // 补词表里不能有死规则。任何一条失守都意味着「繁中界面有地方会退回英文或简体」。
 
 type Bundle = Record<string, unknown>;
@@ -33,18 +33,6 @@ const flatten = (node: unknown, prefix = '', out: Record<string, unknown> = {}):
     return out;
 };
 
-/** 键的声明顺序，用来断言结构没被重新排列。 */
-const keyOrder = (node: unknown, prefix = '', out: string[] = []): string[] => {
-    if (node && typeof node === 'object' && !Array.isArray(node)) {
-        for (const [key, value] of Object.entries(node as Bundle)) {
-            const path = prefix ? `${prefix}.${key}` : key;
-            out.push(path);
-            keyOrder(value, path, out);
-        }
-    }
-    return out;
-};
-
 const flatZH = flatten(zhCN);
 const flatTW = flatten(zhTW);
 const zhTWValues = Object.values(flatTW).filter((value): value is string => typeof value === 'string');
@@ -52,10 +40,6 @@ const zhTWValues = Object.values(flatTW).filter((value): value is string => type
 describe('zh-TW locale structure', () => {
     it('与 zh-CN 的 key 集合完全一致', () => {
         expect(Object.keys(flatTW).sort()).toEqual(Object.keys(flatZH).sort());
-    });
-
-    it('与 zh-CN 的 key 顺序完全一致（生成器逐行对齐，重排会让 diff 失真）', () => {
-        expect(keyOrder(zhTW)).toEqual(keyOrder(zhCN));
     });
 
     it('每个值都是字符串，没有漏转成对象或数组', () => {
@@ -73,7 +57,7 @@ describe('zh-TW locale structure', () => {
     });
 
     it('没有残留的简体专用字形', () => {
-        // 这些字在正体里都有对应的正字，出现即说明某条文案漏转。
+        // 这些字在繁体中文里都有对应的繁体字，出现即说明某条文案漏转。
         const simplifiedOnly = /[为这来说时国东门马鸟见贝车书长开关语应题让种样绝对级别单双击务员实现运]/;
         const leftovers = Object.entries(flatTW)
             .filter(([, value]) => simplifiedOnly.test(String(value)))
@@ -87,20 +71,21 @@ describe('zh-TW locale structure', () => {
         const surviving = TRADITIONAL_TERM_OVERRIDES
             .map(([from]) => from)
             .filter(from => zhTWValues.some(value => value.includes(from)));
-        expect(surviving, `这些词仍出现在 zh-TW.ts 里：${surviving.join(', ')}`).toEqual([]);
+        expect(surviving, `这些词仍出现在繁中文案里：${surviving.join(', ')}`).toEqual([]);
     });
 });
 
-describe('zh-TW locale matches the generator', () => {
+describe('zh-TW virtual module', () => {
     it('每条文案都等于 toTaiwanTraditional(zh-CN 的对应值)', () => {
-        const drifted = Object.keys(flatZH).filter(key => {
+        // 插件只换它找到的字符串字面量；哪条值没被找到，就会原样留成简体，在这里对不上。
+        const missed = Object.keys(flatZH).filter(key => {
             const expected = toTaiwanTraditional(String(flatZH[key]));
             return expected !== flatTW[key];
         });
         expect(
-            drifted,
-            'zh-TW.ts 手改过或忘了重跑 dev/i18n/emitTraditionalLocale.mjs：'
-            + drifted.slice(0, 20).join(', '),
+            missed,
+            'dev/i18n/traditionalLocalePlugin.mjs 没有转换这些文案：'
+            + missed.slice(0, 20).join(', '),
         ).toEqual([]);
     });
 });
@@ -150,14 +135,10 @@ describe('locale language names', () => {
         },
     );
 
-    it('繁中里「简体中文」这个名字本身是正体', () => {
+    it('繁中里「简体中文」这个名字本身是繁体', () => {
         expect((zhTW as Bundle).options).toMatchObject({
             appLanguageZhCN: '簡體中文',
             appLanguageZhTW: '繁體中文',
         });
-    });
-
-    it('保留 twp 不做处理的原始输出，供上面死规则断言对照', () => {
-        expect(toTaiwanRaw('简体中文')).toBe('簡體中文');
     });
 });

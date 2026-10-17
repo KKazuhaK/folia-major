@@ -5,7 +5,7 @@ import { PINYIN_BY_PHRASE } from 'virtual:folia-command-pinyin';
 import { assertExecuteShortcutsArePrefixFree } from '../../../src/components/command-palette/executeShortcuts';
 import en from '../../../src/i18n/locales/en';
 import zhCN from '../../../src/i18n/locales/zh-CN';
-import zhTW from '../../../src/i18n/locales/zh-TW';
+import zhTW from 'virtual:folia-locale-zh-TW';
 import id from '../../../src/i18n/locales/in';
 import { buildSuiteChromeCommands } from '../../../src/components/command-palette/commands/suiteChromeCommands';
 import { listLibrarySuites } from '../../../src/library/registry';

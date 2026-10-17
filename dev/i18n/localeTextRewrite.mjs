@@ -1,5 +1,5 @@
 // dev/i18n/localeTextRewrite.mjs
-// 把一份简体 locale 文案转成台湾正体（台湾惯用词）。
+// 把一份简体 locale 文案转成繁体中文（台湾惯用词）。
 //
 // 两步：先过 OpenCC 的 cn→twp 预设做通用转换，再套一层的后置补词表补 twp 漏掉的词。
 // 后置词表的**键是 twp 转换之后的形状**，不是简体原文——这样词表里每一条都能被程序
@@ -11,7 +11,7 @@
 import * as OpenCC from 'opencc-js';
 import { TRADITIONAL_TERM_OVERRIDES } from './traditionalTerms.mjs';
 
-/** cn → twp（台湾正体 + 台湾惯用词）。模块级建一次，转换是纯函数。 */
+/** cn → twp（繁体中文 + 台湾惯用词）。模块级建一次，转换是纯函数。 */
 const toTaiwan = OpenCC.Converter({ from: 'cn', to: 'twp' });
 
 /**
@@ -35,7 +35,7 @@ export const applyTermOverrides = (text) => {
     return result;
 };
 
-/** 一段简体文案 → 台湾正体文案。这是整条流水线的唯一入口。 */
+/** 一段简体文案 → 繁体中文文案。这是整条流水线的唯一入口。 */
 export const toTaiwanTraditional = (text) => applyTermOverrides(toTaiwan(text));
 
 /** twp 的输出，不经补词表。仅供测试对照「这条规则到底改了 twp 的什么」。 */

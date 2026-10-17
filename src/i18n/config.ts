@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import en from './locales/en.ts';
 import zhCN from './locales/zh-CN.ts';
-import zhTW from './locales/zh-TW.ts';
+import zhTW from 'virtual:folia-locale-zh-TW';
 import ind from './locales/in.ts';
 import { resolveMissingTranslation } from './missingTranslation';
 
